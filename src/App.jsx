@@ -1,118 +1,127 @@
-import React, { useState, useEffect, useRef } from "react";
-import "./App.css";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-const NUM_HOLES = 9;
-const INITIAL_GAME_TIME = 30;
-const INITIAL_POP_INTERVAL = 1000;
-const MOLE_POP_TIME = 800;
+const HOLES = 9;
 
 export default function App() {
-  const [screen, setScreen] = useState("start"); // start | game | end
-  const [moles, setMoles] = useState(Array(NUM_HOLES).fill(false));
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(INITIAL_GAME_TIME);
-  const [highScore, setHighScore] = useState(
-    Number(localStorage.getItem("whackHighScore")) || 0
-  );
-  const popperRef = useRef(null);
+  const [activeHole, setActiveHole] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [playing, setPlaying] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [moleSpeed, setMoleSpeed] = useState(800);
+  const [lastWhack, setLastWhack] = useState(0);
 
-  // Start game function
-  const startGame = () => {
-    setScreen("game");
-    setScore(0);
-    setTimeLeft(INITIAL_GAME_TIME);
+  useEffect(() => {
+    let moleTimer, countdown;
+
+    if (playing) {
+      setGameOver(false);
+      setMoleSpeed(800);
+
+      countdown = setInterval(() => {
+        setTimeLeft((t) => {
+          if (t <= 1) {
+            clearInterval(countdown);
+            clearInterval(moleTimer);
+            setPlaying(false);
+            setGameOver(true);
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
+
+      moleTimer = setInterval(() => {
+        setActiveHole(Math.floor(Math.random() * HOLES));
+        setMoleSpeed((s) => (s > 300 ? s - 20 : s));
+      }, moleSpeed);
+    }
+
+    return () => {
+      clearInterval(countdown);
+      clearInterval(moleTimer);
+    };
+  }, [playing, moleSpeed]);
+
+  const handleWhack = (index) => {
+    if (index === activeHole) {
+      const now = Date.now();
+      let points = 1;
+      if (now - lastWhack < 500) points = 2; // Combo bonus
+      setScore((s) => s + points);
+      setLastWhack(now);
+      setActiveHole(null);
+    }
   };
 
-  // Game timer
-  useEffect(() => {
-    if (screen !== "game") return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((t) => {
-        if (t <= 1) {
-          clearInterval(timer);
-          setScreen("end");
-          if (score > highScore) localStorage.setItem("whackHighScore", score);
-        }
-        return t - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [screen]);
-
-  // Mole popper
-  useEffect(() => {
-    if (screen !== "game") return;
-
-    const popMole = () => {
-      const idx = Math.floor(Math.random() * NUM_HOLES);
-      setMoles((prev) => {
-        const newArr = [...prev];
-        newArr[idx] = true;
-        return newArr;
-      });
-      setTimeout(() => {
-        setMoles((prev) => {
-          const newArr = [...prev];
-          newArr[idx] = false;
-          return newArr;
-        });
-      }, MOLE_POP_TIME);
-    };
-
-    popperRef.current = setInterval(popMole, INITIAL_POP_INTERVAL);
-
-    return () => clearInterval(popperRef.current);
-  }, [screen]);
-
-  const whackMole = (idx) => {
-    if (!moles[idx]) return;
-    setScore((s) => s + 1);
-    setMoles((prev) => {
-      const newArr = [...prev];
-      newArr[idx] = false;
-      return newArr;
-    });
+  const startGame = () => {
+    setScore(0);
+    setTimeLeft(30);
+    setPlaying(true);
+    setActiveHole(null);
+    setGameOver(false);
+    setMoleSpeed(800);
   };
 
   return (
-    <div className="container">
-      {screen === "start" && (
+    <div>
+      {/* Start Screen */}
+      {!playing && !gameOver && (
         <div className="start-screen">
           <h1>Whack-a-Mole</h1>
-          <button onClick={startGame}>Start</button>
-          <div className="creator-credit">Created by Tanya</div>
+          <button className="start-btn" onClick={startGame}>
+            Start Game
+          </button>
         </div>
       )}
-      {screen === "game" && (
+
+      {/* Game Screen */}
+      {playing && !gameOver && (
         <div className="game-screen">
-          <div className="scoreboard">
-            <div>Score: {score}</div>
-            <div>High Score: {highScore}</div>
-            <div>Time: {timeLeft}</div>
+          <div className="stats">
+            <div>⏱ Time: {timeLeft}</div>
+            <div>⭐ Score: {score}</div>
           </div>
-          <div className="holes">
-            {moles.map((active, i) => (
+
+          <div className="grid">
+            {Array.from({ length: HOLES }).map((_, i) => (
               <div
                 key={i}
-                className={`hole ${active ? "mole" : ""}`}
-                onClick={() => whackMole(i)}
-              />
+                className={`hole ${i === activeHole ? "active" : ""}`}
+                onClick={() => handleWhack(i)}
+              >
+                <AnimatePresence>
+                  {i === activeHole && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1.2 }}
+                      exit={{ scale: 0 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      🐹
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
+              </div>
             ))}
           </div>
-          <div className="creator-credit">Created by Tanya</div>
         </div>
       )}
-      {screen === "end" && (
+
+      {/* End Screen */}
+      {gameOver && (
         <div className="end-screen">
-          <h1>Game Over!</h1>
-          <div>Score: {score}</div>
-          <div>High Score: {highScore}</div>
-          <button onClick={() => setScreen("start")}>Restart</button>
-          <div className="creator-credit">Created by Tanya</div>
+          <h1>🎉 Game Over 🎉</h1>
+          <p>Final Score: {score}</p>
+          <button className="restart-btn" onClick={startGame}>
+            Restart 🔄
+          </button>
         </div>
       )}
+
+      <div className="creator-credit">created by Tanya 🤍</div>
     </div>
   );
 }

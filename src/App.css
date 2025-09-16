@@ -1,38 +1,95 @@
-.App {
+/* ===== General Reset ===== */
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #f9f7ff, #e3f2fd);
+  color: #333;
+}
+
+/* ===== Start & End Screens ===== */
+.start-screen,
+.end-screen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.start-screen h1,
+.end-screen h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: #6a1b9a;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* ===== Buttons ===== */
+.start-btn {
+  background: #ff7bbd;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+  box-shadow: 0 6px 18px rgba(255, 123, 189, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.start-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(255, 123, 189, 0.35);
+}
+
+/* ===== Game Screen ===== */
+.game-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 20px;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 400px;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+/* ===== Grid ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-gap: 15px;
+}
+
+.hole {
+  width: 100px;
+  height: 100px;
+  background: #c8e6c9;
+  border-radius: 50%;
+  display: flex;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: center;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.App-link {
-  color: #61dafb;
+.hole.active {
+  background: #81c784;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* ===== Footer Credit ===== */
+.creator-credit {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: 0.9rem;
+  color: #555;
 }
