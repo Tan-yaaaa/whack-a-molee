@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import './App.css';
 
 function App() {
@@ -11,10 +11,11 @@ function App() {
   const [gameRunning, setGameRunning] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [activeMole, setActiveMole] = useState(null);
+  const [moleDisappearing, setMoleDisappearing] = useState(false);
 
   const intervalRef = useRef(null);
   const moleTimeoutRef = useRef(null);
-  const scoreRef = useRef(0); // <-- track live score
+  const scoreRef = useRef(0);
 
   const startGame = () => {
     setScore(0);
@@ -22,10 +23,12 @@ function App() {
     setTimeLeft(GAME_TIME);
     setGameRunning(true);
     setGameOver(false);
+    setActiveMole(null);
 
     clearInterval(intervalRef.current);
     clearTimeout(moleTimeoutRef.current);
 
+    // countdown timer
     intervalRef.current = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -33,7 +36,7 @@ function App() {
           clearTimeout(moleTimeoutRef.current);
           setGameRunning(false);
           setGameOver(true);
-          updateHighScore(scoreRef.current); // <-- always use ref
+          updateHighScore(scoreRef.current);
           return 0;
         }
         return prev - 1;
@@ -42,27 +45,32 @@ function App() {
 
     spawnMole();
   };
-const spawnMole = () => {
-  if (!gameRunning) return;
 
-  const randomHole = Math.floor(Math.random() * GRID_SIZE);
-  setActiveMole(randomHole);
+  const spawnMole = () => {
+    if (!gameRunning) return;
 
-  // Mole stays visible for 800ms
-  moleTimeoutRef.current = setTimeout(() => {
-    setActiveMole(null);
+    const randomHole = Math.floor(Math.random() * GRID_SIZE);
+    setActiveMole(randomHole);
+    setMoleDisappearing(false);
 
-    // Wait a random delay before next mole
-    const delay = Math.random() * 1000 + 500; // 0.5–1.5s
-    moleTimeoutRef.current = setTimeout(spawnMole, delay);
-  }, 800);
-};
+    // mole stays visible for 800ms
+    moleTimeoutRef.current = setTimeout(() => {
+      setMoleDisappearing(true);
+
+      // after popDown animation ends, clear & spawn new
+      setTimeout(() => {
+        setActiveMole(null);
+        const delay = Math.random() * 1000 + 500; // 0.5–1.5s
+        moleTimeoutRef.current = setTimeout(spawnMole, delay);
+      }, 300); // match popDown animation
+    }, 800);
+  };
 
   const whackMole = (index) => {
     if (index === activeMole) {
       setScore(prev => {
         const newScore = prev + 1;
-        scoreRef.current = newScore; // <-- keep ref in sync
+        scoreRef.current = newScore;
         return newScore;
       });
       setActiveMole(null);
@@ -108,15 +116,17 @@ const spawnMole = () => {
               className={`hole ${activeMole === index ? 'active' : ''}`}
               onClick={() => whackMole(index)}
             >
-              {activeMole === index && <span className="mole">🐹</span>}
+              {activeMole === index && (
+                <span className={`mole ${moleDisappearing ? 'disappear' : ''}`}>🐹</span>
+              )}
             </div>
           ))}
         </div>
       )}
 
       {gameOver && (
-        <div className="game-over">
-          <h2>Game Over!</h2>
+        <div className="end-screen">
+          <h1>Game Over!</h1>
           <p>Final Score: {score}</p>
           <p>🏆 High Score: {highScore}</p>
           <button className="start-btn" onClick={startGame}>Play Again</button>

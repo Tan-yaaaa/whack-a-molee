@@ -7,7 +7,6 @@ body {
 }
 
 /* ===== Start & End Screens ===== */
-.start-screen,
 .end-screen {
   display: flex;
   flex-direction: column;
@@ -17,7 +16,6 @@ body {
   text-align: center;
 }
 
-.start-screen h1,
 .end-screen h1 {
   font-size: 3rem;
   margin-bottom: 20px;
@@ -79,31 +77,47 @@ body {
   font-size: 2rem;
   cursor: pointer;
   transition: background 0.2s ease;
+  position: relative; /* allows mole inside */
+  overflow: hidden;
 }
 
 .hole.active {
   background: #81c784;
 }
-@keyframes popUp {
-  from {
-    bottom: -50px;
-    opacity: 0;
-  }
-  to {
-    bottom: 10px;
-    opacity: 1;
-  }
+
+/* ===== Mole Animations ===== */
+.mole {
+  font-size: 2rem;
+  position: absolute;
+  bottom: 10px;
 }
 
 .hole.active .mole {
   animation: popUp 0.3s forwards;
 }
 
-/* ===== Footer Credit ===== */
-.creator-credit {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  font-size: 0.9rem;
-  color: #555;
+@keyframes popUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes popDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+.mole.disappear {
+  animation: popDown 0.3s forwards;
 }
