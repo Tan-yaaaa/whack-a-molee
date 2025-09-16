@@ -84,6 +84,20 @@ body {
 .hole.active {
   background: #81c784;
 }
+@keyframes popUp {
+  from {
+    bottom: -50px;
+    opacity: 0;
+  }
+  to {
+    bottom: 10px;
+    opacity: 1;
+  }
+}
+
+.hole.active .mole {
+  animation: popUp 0.3s forwards;
+}
 
 /* ===== Footer Credit ===== */
 .creator-credit {
